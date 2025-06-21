@@ -3,10 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build && node scripts/setNonce.js",
-    "start": "next start",
-    "lint": "next lint"
+    "build": "node scripts/convert-legal-docs.js"
   },
   "dependencies": {
     "marked": "^15.0.12"

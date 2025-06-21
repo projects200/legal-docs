@@ -1,7 +1,54 @@
-name: Deploy Legal Docs to Production
+name: CI/CD
 
 on:
   push:
     branches:
       - master
   workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  SHORT_CACHE: '--cache-control public,max-age=0,no-cache,must-revalidate'
+  S3_SYNC_OPTS: '--delete'
+
+jobs:
+  legal-docs-CI-CD:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: Build
+        run: |
+          npm install
+          npm run build
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Upload Docs to S3 (MAIN)
+        run: |
+          BUCKET=${{ secrets.AWS_S3_CLIENT_MAIN_BUCKET_NAME }}
+          aws s3 sync ./dist s3://$BUCKET/legal/ $SHORT_CACHE $S3_SYNC_OPTS
+
+      - name: Invalidate CloudFront Cache for Legal Docs
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ secrets.AWS_CLOUDFRONT_MAIN_DISTRIBUTION_ID }} \
+            --paths "/legal/*"

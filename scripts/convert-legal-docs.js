@@ -3,14 +3,12 @@ const path = require("path");
 const { marked } = require("marked");
 
 const sourceDir = path.join(__dirname, "..", "legal-docs");
-const outputDir = path.join(__dirname, "..", "legal-docs-html");
+const outputDir = path.join(__dirname, "..", "./dist");
 
 async function convert() {
   try {
-    // 출력 폴더가 없으면 생성
     await fs.mkdir(outputDir, { recursive: true });
 
-    // 소스 디렉토리의 파일 목록 읽기
     const files = await fs.readdir(sourceDir);
 
     for (const file of files) {
