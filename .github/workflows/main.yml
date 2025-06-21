@@ -1,0 +1,7 @@
+name: Deploy Legal Docs to Production
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
